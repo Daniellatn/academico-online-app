@@ -8,6 +8,9 @@ const forms = StyleSheet.create({
   },
   input: {
     margin: 5
+  },
+  button: {
+    marginTop: 10
   }
 })
 

@@ -1,21 +1,28 @@
-import { ScrollView } from "react-native"
+import { ScrollView, View } from "react-native"
 import { Button, Text, TextInput } from "react-native-paper"
 import forms from "../../styles/forms"
-import { useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { Formik } from "formik"
 
-const CoursesForm = ({navigation}) => {
+const CoursesForm = ({ navigation, route }) => {
 
-  const [data, setdata] = useState({})
+  const course = route.params?.course || {}
+  const id = route.params?.id
 
-  function handleChange(value, input) {
-    setdata({...data, [input]: value})
-  }
+  // const [data, setdata] = useState({})
 
-  function save() {
+  // function handleChange(value, input) {
+  //   setdata({ ...data, [input]: value })
+  // }
+
+  function save(data) {
     AsyncStorage.getItem('courses').then(result => {
       const courses = JSON.parse(result) || []
-      courses.push(data)
+      if(id >= 0) {
+        courses.splice(id, 1, data)
+      } else {
+        courses.push(data)
+      }
       AsyncStorage.setItem('courses', JSON.stringify(courses))
       navigation.goBack()
     })
@@ -26,32 +33,41 @@ const CoursesForm = ({navigation}) => {
 
       <Text style={forms.title}>Formulário de Cursos</Text>
 
-      <TextInput
-        style={forms.input}
-        mode="outlined"
-        label='Nome'
-        value={data.name}
-        onChangeText={(value) => handleChange(value, 'name')}
-      />
-      <TextInput
-        style={forms.input}
-        mode="outlined"
-        label='Duração'
-        keyboardType="decimal-pad"
-        value={data.duration}
-        onChangeText={(value) => handleChange(value, 'duration')}
-      />
-      <TextInput
-        style={forms.input}
-        mode="outlined"
-        label='Modalidade'
-        value={data.modality}
-        onChangeText={(value) => handleChange(value, 'modality')}
-      />
+      <Formik
+        initialValues={course}
+        onSubmit={values => save(values)}
+      >
+        {({values, handleChange, handleSubmit}) => (
+          <View>
+            <TextInput
+              style={forms.input}
+              mode="outlined"
+              label='Nome'
+              value={values.name}
+              onChangeText={handleChange('name')}
+            />
+            <TextInput
+              style={forms.input}
+              mode="outlined"
+              label='Duração'
+              keyboardType="decimal-pad"
+              value={values.duration}
+              onChangeText={handleChange('duration')}
+            />
+            <TextInput
+              style={forms.input}
+              mode="outlined"
+              label='Modalidade'
+              value={values.modality}
+              onChangeText={handleChange('modality')}
+            />
 
-      <Button icon="plus" mode="contained-tonal" onPress={save}>
-        Salvar
-      </Button>
+            <Button style={forms.button} icon="plus" mode="contained-tonal" onPress={handleSubmit}>
+              Salvar
+            </Button>
+          </View>
+        )}
+      </Formik>
     </ScrollView>
   )
 }
