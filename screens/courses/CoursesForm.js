@@ -3,22 +3,18 @@ import { Button, Text, TextInput } from "react-native-paper"
 import forms from "../../styles/forms"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { Formik } from "formik"
+import * as Yup from 'yup';
+import { Colors } from "react-native/Libraries/NewAppScreen"
 
 const CoursesForm = ({ navigation, route }) => {
 
   const course = route.params?.course || {}
   const id = route.params?.id
 
-  // const [data, setdata] = useState({})
-
-  // function handleChange(value, input) {
-  //   setdata({ ...data, [input]: value })
-  // }
-
   function save(data) {
     AsyncStorage.getItem('courses').then(result => {
       const courses = JSON.parse(result) || []
-      if(id >= 0) {
+      if (id >= 0) {
         courses.splice(id, 1, data)
       } else {
         courses.push(data)
@@ -28,6 +24,15 @@ const CoursesForm = ({ navigation, route }) => {
     })
   }
 
+  const courseSchema = Yup.object().shape({
+    name: Yup.string()
+      .min(2, 'Valor muito curto')
+      .max(50, 'Valor muito grande')
+      .required('* Campo obrigatório'),
+    duration: Yup.number(),
+    modality: Yup.string()
+  })
+
   return (
     <ScrollView style={{ margin: 15 }}>
 
@@ -35,9 +40,10 @@ const CoursesForm = ({ navigation, route }) => {
 
       <Formik
         initialValues={course}
+        validationSchema={courseSchema}
         onSubmit={values => save(values)}
       >
-        {({values, handleChange, handleSubmit}) => (
+        {({ values, handleChange, handleSubmit, errors, touched }) => (
           <View>
             <TextInput
               style={forms.input}
@@ -46,6 +52,10 @@ const CoursesForm = ({ navigation, route }) => {
               value={values.name}
               onChangeText={handleChange('name')}
             />
+            {(errors.name && touched.name) &&
+              <Text style={{ color: 'red', marginTop: 5 }}>{errors.name}</Text>
+            }
+
             <TextInput
               style={forms.input}
               mode="outlined"
@@ -54,6 +64,10 @@ const CoursesForm = ({ navigation, route }) => {
               value={values.duration}
               onChangeText={handleChange('duration')}
             />
+            {(errors.duration && touched.duration) &&
+              <Text style={{ color: 'red', marginTop: 5 }}>{errors.duration}</Text>
+            }
+
             <TextInput
               style={forms.input}
               mode="outlined"
@@ -61,6 +75,9 @@ const CoursesForm = ({ navigation, route }) => {
               value={values.modality}
               onChangeText={handleChange('modality')}
             />
+            {(errors.duration && touched.duration) &&
+              <Text style={{ color: 'red', marginTop: 5 }}>{errors.duration}</Text>
+            }
 
             <Button style={forms.button} icon="plus" mode="contained-tonal" onPress={handleSubmit}>
               Salvar
